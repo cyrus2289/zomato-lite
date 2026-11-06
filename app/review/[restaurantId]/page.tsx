@@ -10,18 +10,26 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
+// The pulsing grey placeholder shown while the shell waits for data.
+function Skeleton() {
+  return (
+    <main className="min-h-screen bg-[#faf9f6] text-[#1a1a1a]">
+      <div className="mx-auto max-w-[560px] px-6 py-16">
+        <div className="h-7 w-44 animate-pulse rounded bg-[#e5e0d8]" />
+        <div className="mt-10 h-10 w-32 animate-pulse rounded bg-[#efeadf]" />
+        <div className="mt-8 h-28 w-full animate-pulse rounded-lg bg-[#efeadf]" />
+        <div className="mt-6 h-12 w-full animate-pulse rounded-lg bg-[#2a2926]/40" />
+      </div>
+    </main>
+  );
+}
+
 // Next.js 16 (cacheComponents): URL data read via useParams() in a client
 // component must sit inside a Suspense boundary so the page shell can
 // prerender instantly and the content streams in after.
 export default function WriteReviewPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="flex min-h-screen items-center justify-center bg-[#faf9f6] px-6 text-[#1a1a1a]">
-          <p className="text-sm text-[#6f6a63]">Loading…</p>
-        </main>
-      }
-    >
+    <Suspense fallback={<Skeleton />}>
       <WriteReviewContent />
     </Suspense>
   );
@@ -95,20 +103,25 @@ function WriteReviewContent() {
     );
   }
 
+  if (!restaurantName) return <Skeleton />;
+
   const shownRating = hoverRating || rating;
 
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1a1a1a]">
-      <div className="mx-auto max-w-[560px] px-6 py-14">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {restaurantName ?? 'Loading…'}
+      <div className="mx-auto max-w-[560px] px-6 py-16">
+        <h1 className="text-[30px] leading-tight font-semibold tracking-tight">
+          {restaurantName}
         </h1>
-        <p className="mt-1 text-sm text-[#6f6a63]">How was it?</p>
+        <p className="mt-1.5 text-sm text-[#6f6a63]">How was it?</p>
 
-        <form onSubmit={handleSubmit} className="mt-10">
+        <form onSubmit={handleSubmit} className="mt-12">
           {/* Star picker — 1 to 5, clickable, clear selected state */}
+          <p className="text-[11px] font-medium tracking-[0.08em] text-[#8f8a81]">
+            YOUR RATING
+          </p>
           <div
-            className="flex items-center gap-1"
+            className="mt-2 flex items-center gap-1"
             onMouseLeave={() => setHoverRating(0)}
           >
             {[1, 2, 3, 4, 5].map((n) => (
@@ -128,13 +141,16 @@ function WriteReviewContent() {
           </div>
 
           {/* Comment box */}
+          <p className="mt-9 text-[11px] font-medium tracking-[0.08em] text-[#8f8a81]">
+            YOUR REVIEW
+          </p>
           <textarea
             value={comment}
             onChange={(event) => setComment(event.target.value)}
             maxLength={500}
-            rows={4}
+            rows={5}
             placeholder="What did you think?"
-            className="mt-8 w-full resize-none rounded-lg border border-[#e5e0d8] bg-[#fffcf7] px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-[#b45309]"
+            className="mt-2 w-full resize-none rounded-lg border border-[#e5e0d8] bg-[#fffcf7] px-4 py-3 text-[15px] leading-relaxed outline-none transition-colors focus:border-[#b45309]"
           />
 
           {/* Backend's message, verbatim */}
@@ -146,7 +162,7 @@ function WriteReviewContent() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="mt-6 w-full rounded-lg bg-[#1a1a1a] py-3 text-sm font-medium text-[#faf9f6] disabled:opacity-40"
+            className="mt-6 w-full rounded-lg bg-[#1a1a1a] py-3 text-sm font-medium text-[#faf9f6] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
           >
             {submitting ? 'Thank you — taking you to the reviews…' : 'Submit'}
           </button>
